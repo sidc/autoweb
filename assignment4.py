@@ -2,6 +2,8 @@ from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait # available since 2.4.0
 from selenium.webdriver.support import expected_conditions as EC # available since 2.26.0
+#from xvfbwrapper import xvfb
+#from pyvirtualdisplay import Display
 
 # visitedPage = list()
 # stack = list()
@@ -18,8 +20,13 @@ def grade(pageURL):
     score = 0
     numPages = 0
 
+    #display = Xvfb()
+    
+    #display = Display(visible=0, size=(800, 600))
+    #display.start()
     # Create a new instance of the Firefox driver
-    driver = webdriver.Firefox()
+    #driver = webdriver.Firefox()
+    driver = webdriver.PhantomJS(service_log_path='/var/log/phantomjs/ghostdriver.log')
 
     stack.append(pageURL)
     numPages = 1
@@ -30,7 +37,7 @@ def grade(pageURL):
         print score
     
     driver.quit()
-
+    #display.stop()
     print log
  
     return (log,score)

@@ -101,5 +101,5 @@ def submit_assignment4(db):
 
 
 # Starting the server
-#run(app, host='localhost', port=8080, debug=True, reloader=True)
-app.run(server='paste',port=80)
+#run(app, host='localhost', port=8000, debug=True, reloader=True)
+#app.run(server='paste',port=80)
