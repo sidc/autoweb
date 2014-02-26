@@ -25,8 +25,8 @@ def grade(pageURL):
     #display = Display(visible=0, size=(800, 600))
     #display.start()
     # Create a new instance of the Firefox driver
-    #driver = webdriver.Firefox()
-    driver = webdriver.PhantomJS(service_log_path='/var/log/phantomjs/ghostdriver.log')
+    driver = webdriver.Firefox()
+    #driver = webdriver.PhantomJS(portservice_log_path='ghostdriver.log')
 
     stack.append(pageURL)
     numPages = 1
@@ -56,34 +56,41 @@ def checkPageForAssign(driver):
     try: 
         driver.get(pageURL)
         score += 1 # URL worked free Points
-        log.append("---Page: "+pageURL+" works "+ " | Cumulative Points: "+str(score))
+        log.append("---Page: "+pageURL+" works "+ " | <span class=\"green\">You gained 1 point</span> | Cumulative Points: "+str(score))
     except:
-        log.append("Loading "+pageURL+"failed. Please retry submitting a valid URL")
+        log.append("Loading "+pageURL+"failed. Please retry submitting a valid URL | <span class=\"red\">You didn't gain 1 point</span> | Cumulative Points: "+str(score))
         return 
 
     # Points +1 If page has title
     title = driver.title
     if title is None:
-        log.append("The page has no title" + " | Cumulative Points: "+str(score))
+        log.append("The page has no title" + " | <span class=\"red\">You didn't gain 1 point</span> | Cumulative Points: "+str(score))
     else:
         score += 1
-        log.append("Page has the title :"+title + " | Cumulative Points: "+str(score))
+        log.append("Page has the title :"+title + " | <span class=\"green\">You gained 1 point</span>| Cumulative Points: "+str(score))
         
 
 
-    # Points 
-    #     +1 If page has header  or 
-    #     +2 If page has nav and header or
-    #     +3 If nav inside header
-    header = hasTag(driver,"header")
-    if header is not None:
-        navbar = hasTag(header,"nav",2)
+    # # Points 
+    # #     +1 If page has header  or 
+    # #     +2 If page has nav and header or
+    # #     +3 If nav inside header
+    # header = hasTag(driver,"header")
+    # if header is not None:
+    #     navbar = hasTag(header,"nav",2)
 
-    if 'navbar' not in locals() or navbar is None:
-        navbar = hasTag(driver,"nav")
+    # if 'navbar' not in locals() or navbar is None:
+    #     navbar = hasTag(driver,"nav")
+
 
 
     # Points
+    #   +1 if page has header
+    header = hasTag(driver,"header")
+
+    #   +1 if page has nav
+    navbar = hasTag(driver,"nav")
+    
     #   +1 if no list inside nav
     if navbar is not None:
         print "Nav tag ", 
@@ -101,13 +108,31 @@ def checkPageForAssign(driver):
     table = hasTag(driver,"table",-1) 
 
     # Points +1 if has footer
-    footer = hasTag(driver,"footer") 
+    footer = hasTag(driver,"footer",1) 
 
-    # Points +1 if page has atleast one image
+    # Points +1 if page hasatleast one image
     image = hasTag(driver,"img")
 
-    # Points +1 if page has atleast one link
-    link = hasTag(driver,"a")
+    # Points +1 if page has id=current
+    try: 
+        hasCurrentId = driver.find_element_by_id('current')
+        score +=1
+        log.append("The page has id=current | <span class=\"green\">You gained 1 point</span> | Cumulative Points: "+str(score))
+    except NoSuchElementException:
+        log.append("Page doesn't have id=current | <span class=\"red\">You didn't gain 1 point</span>| Cumulative Points: "+str(score))
+  
+    # Points +1 if page atleast two classes
+    try: 
+        classElements = driver.find_elements_by_xpath('//div[@class]')
+        if len(classElements) > 1:
+            score +=1
+            log.append("The page uses atleast two classes | <span class=\"green\">You gained 1 point</span> | Cumulative Points: "+str(score))
+        else:
+            log.append("Page doesn't have two classes | <span class=\"red\">You didn't gain 1 point</span>| Cumulative Points: "+str(score))      
+    except NoSuchElementException:
+        log.append("Page doesn't have two classes | <span class=\"red\">You didn't gain 1 point</span>| Cumulative Points: "+str(score))      
+
+
 
     log.append("---Finished testing "+pageURL + "| Cumulative Points : "+str(score))
 
@@ -119,16 +144,19 @@ def hasTag(driver,tag,value=1):
     try:
         hasTag = driver.find_element_by_tag_name(tag)
         print "has tag", tag
-        if value > 0 and value < 50:
+        if value > 0:
             score += value
-        log.append("has tag "+tag+" | Cumulative Points: "+str(score))
+            log.append("has tag "+tag+" | <span class=\"green\">You gained "+str(value)+" point(s)</span> | Cumulative Points: "+str(score))
+        else:
+            log.append("has tag "+tag+" | <span class=\"red\">You didn't gain "+str(-value)+" point</span> | Cumulative Points: "+str(score))    
         print score
         return hasTag
     except NoSuchElementException:
-        if value < 0 and value < 50:
+        if value < 0 :
             score -= value
-        print "doesn't have tag ", tag
-        log.append("doesn't have tag "+tag+" | Cumulative Points: "+str(score))
+            log.append("doesn't have tag "+tag+" | <span class=\"green\">You gained "+str(-value)+" point</span> | Cumulative Points: "+str(score))
+        else:
+            log.append("doesn't have tag "+tag+" | <span class=\"red\">You didn't gain "+str(value)+" point</span> | Cumulative Points: "+str(score))    
         print score 
         return None
 
