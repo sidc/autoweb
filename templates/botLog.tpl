@@ -12,6 +12,6 @@
 </style>
 </head>
 <body>
-{{ !logHtml }}
+{{!logHtml}}
 </body>
 </html>

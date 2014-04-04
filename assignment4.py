@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait # available since 2.4.0
 from selenium.webdriver.support import expected_conditions as EC # available since 2.26.0
+import subprocess
 #from xvfbwrapper import xvfb
 #from pyvirtualdisplay import Display
 
@@ -25,8 +26,13 @@ def grade(pageURL):
     #display = Display(visible=0, size=(800, 600))
     #display.start()
     # Create a new instance of the Firefox driver
-    driver = webdriver.Firefox()
-    #driver = webdriver.PhantomJS(portservice_log_path='ghostdriver.log')
+    # driver = webdriver.Firefox()
+    try:
+        driver = webdriver.PhantomJS(port=5001,service_log_path='/var/log/phantomjs/ghostdriver.log')
+    except:
+        subprocess.call(["phantomjs","--load-images=false","--webdriver=50001"])
+        driver = webdriver.PhantomJS(port=5001,service_log_path='/var/log/phantomjs/ghostdriver.log')
+
 
     stack.append(pageURL)
     numPages = 1
@@ -36,7 +42,7 @@ def grade(pageURL):
         checkPageForAssign (driver)
         print score
     
-    driver.quit()
+    #driver.quit()
     #display.stop()
     print log
  
@@ -55,10 +61,10 @@ def checkPageForAssign(driver):
     visitedPage.append(pageURL)
     try: 
         driver.get(pageURL)
-        score += 1 # URL worked free Points
-        log.append("---Page: "+pageURL+" works "+ " | <span class=\"green\">You gained 1 point</span> | Cumulative Points: "+str(score))
+        score += 3 # URL worked free Points
+        log.append("---Page: "+pageURL+" works "+ " | <span class=\"green\">You gained 3 points</span> | Cumulative Points: "+str(score))
     except:
-        log.append("Loading "+pageURL+"failed. Please retry submitting a valid URL | <span class=\"red\">You didn't gain 1 point</span> | Cumulative Points: "+str(score))
+        log.append("Loading "+pageURL+"failed. Please retry submitting a valid URL | <span class=\"red\">You didn't gain 3 point</span> | Cumulative Points: "+str(score))
         return 
 
     # Points +1 If page has title
@@ -94,7 +100,7 @@ def checkPageForAssign(driver):
     #   +1 if no list inside nav
     if navbar is not None:
         print "Nav tag ", 
-        listTag = hasTag(navbar,"li",-1)
+        #listTag = hasTag(navbar,"li",-1)
         links = navbar.find_elements_by_tag_name("a")
         for link in links:
             href = link.get_attribute("href")
@@ -104,14 +110,12 @@ def checkPageForAssign(driver):
                 stack.append(processHref)
                 numPages = numPages + 1
 
-    # Points +1 if no table
-    table = hasTag(driver,"table",-1) 
 
     # Points +1 if has footer
-    footer = hasTag(driver,"footer",1) 
+    footer = hasTag(driver,"footer") 
 
-    # Points +1 if page hasatleast one image
-    image = hasTag(driver,"img")
+    # Points +1 if page hasatleast h1
+    image = hasTag(driver,"h1")
 
     # Points +1 if page has id=current
     try: 
